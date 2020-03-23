@@ -1,0 +1,9 @@
+name: Periscopes
+main: io.github.eirikh1996.periscopes.Periscopes
+version: ${project.version}
+api-version: '1.13'
+depend:
+  - Movecraft
+commands:
+  periscopes:
+    description: Plugin main command
