@@ -11,10 +11,11 @@ import java.io.InputStreamReader
 import java.net.URL
 
 object UpdateManager : BukkitRunnable(), Listener {
-    private var running = false
     var update = ""
-    //Prevents more than one instance being created
-    open fun UpdateManager() {}
+
+    init {
+        runTaskTimerAsynchronously(Periscopes.instance, 0, 100000)
+    }
 
     override fun run() {
         val newVersion = newUpdateAvailable()
@@ -47,12 +48,6 @@ object UpdateManager : BukkitRunnable(), Listener {
                     .sendMessage(Periscopes.instance.PERISCOPES_PREFIX + "An update of Periscopes is now available. Download from https://dev.bukkit.org/projects/movecraft-factions")
             }
         }.runTaskLaterAsynchronously(Periscopes.instance, 60)
-    }
-
-    fun start() {
-        if (running) return
-        runTaskTimerAsynchronously(Periscopes.instance, 0, 1000000)
-        running = true
     }
 
     fun newUpdateAvailable(): String? {

@@ -5,3 +5,5 @@ Allowed periscope materials:
 
 Min periscope height: -1
 Max periscope height: -1
+Periscope sign text: '§3Periscope'
+Periscope create cost: 1000.0

@@ -2,8 +2,11 @@ name: Periscopes
 main: io.github.eirikh1996.periscopes.Periscopes
 version: ${project.version}
 api-version: '1.13'
-depend:
+softdepend:
   - Movecraft
+  - QualityArmory
+  - CrackShot
+  - Vault
 commands:
   periscopes:
     description: Plugin main command

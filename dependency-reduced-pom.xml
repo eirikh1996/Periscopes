@@ -4,7 +4,7 @@
   <groupId>io.github.eirikh1996</groupId>
   <artifactId>Periscopes</artifactId>
   <name>Periscopes</name>
-  <version>1.0</version>
+  <version>1.1</version>
   <build>
     <sourceDirectory>src/main/kotlin</sourceDirectory>
     <testSourceDirectory>src/test/kotlin</testSourceDirectory>
@@ -88,6 +88,10 @@
       <id>dmulloy2-repo</id>
       <url>https://repo.dmulloy2.net/nexus/repository/public/</url>
     </repository>
+    <repository>
+      <id>vault-repo</id>
+      <url>http://nexus.hc.to/content/repositories/pub_releases</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -124,6 +128,20 @@
       <version>7.0</version>
       <scope>system</scope>
       <systemPath>${project.basedir}/lib/Movecraft.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>me.zombie_striker</groupId>
+      <artifactId>QualityArmory</artifactId>
+      <version>LATEST</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/QualityArmory.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.shampaggon</groupId>
+      <artifactId>CrackShot</artifactId>
+      <version>LATEST</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/CrackShot.jar</systemPath>
     </dependency>
   </dependencies>
   <properties>

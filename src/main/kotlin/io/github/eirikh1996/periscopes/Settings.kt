@@ -7,4 +7,6 @@ object Settings {
     var isLegacy = false
     var maxPeriscopeHeight = -1
     var minPeriscopeHeight = -1
+    var periscopeSignText = "§3Periscope"
+    var periscopeCreateCost = -1.0
 }
