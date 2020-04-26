@@ -96,7 +96,7 @@ object MainListener : Listener {
                 return
             }
             eco.withdrawPlayer(event.player, Settings.periscopeCreateCost)
-            msg += "Withdrew " + Settings.periscopeCreateCost + "from your balance"
+            msg += "Withdrew " + Settings.periscopeCreateCost + " from your balance"
         }
         event.player.sendMessage(msg)
         event.setLine(0, Settings.periscopeSignText)

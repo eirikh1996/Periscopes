@@ -25,7 +25,7 @@ object UpdateManager : BukkitRunnable(), Listener {
                 if (newVersion != null) {
                     for (p in Bukkit.getOnlinePlayers()) {
                         if (!p.hasPermission("periscopes.update")) {
-                            p.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + "An update of Movecraft-Factions is now available. Download from https://dev.bukkit.org/projects/movecraft-factions")
+                            p.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + "An update of Periscopes is now available. Download from https://dev.bukkit.org/projects/periscopes")
                         }
                     }
                     Periscopes.instance.getLogger().warning("An update of Periscopes is available")
@@ -45,7 +45,7 @@ object UpdateManager : BukkitRunnable(), Listener {
             override fun run() {
                 val newVer: String = newUpdateAvailable() ?: return
                 event.player
-                    .sendMessage(Periscopes.instance.PERISCOPES_PREFIX + "An update of Periscopes is now available. Download from https://dev.bukkit.org/projects/movecraft-factions")
+                    .sendMessage(Periscopes.instance.PERISCOPES_PREFIX + "An update of Periscopes is now available. Download from https://dev.bukkit.org/projects/periscopes")
             }
         }.runTaskLaterAsynchronously(Periscopes.instance, 60)
     }
@@ -69,17 +69,14 @@ object UpdateManager : BukkitRunnable(), Listener {
             val data =
                 objList[objList.size - 1] as Map<String, Any>
             val versionName = data["name"] as String?
+            val currVersion = Periscopes.instance.getDescription().getVersion().replace("v", "")
             val newVersion = versionName!!.substring(versionName.lastIndexOf("v") + 1)
-            var index = 0
-            for (part in newVersion.split(".").toTypedArray()) {
-                val currVer = Periscopes.instance.getDescription().getVersion().split(".").get(index).toInt()
-                val newVer = part.toInt()
-                if (newVer > currVer) return newVersion
-                index++
-            }
+            val cv = currVersion.split(".")[0].toInt() * 1000 + currVersion.split(".")[1].toInt()
+            val nv = newVersion.split(".")[0].toInt() * 1000 + newVersion.split(".")[1].toInt()
+            if (nv > cv)
+                return newVersion
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
         }
         return null
     }

@@ -13,6 +13,7 @@ import java.util.*
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.World
 import org.bukkit.block.Sign
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -31,11 +32,14 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
     var player : Player? = null
     var originalLocation : Location? = null
     var originalWalkSpeed : Float = 0f
+    var world : World
 
     init {
+        world = signLoc.world!!
         Bukkit.getPluginManager().registerEvents(this, Periscopes.instance)
     }
-    fun translate(displacement : MovecraftLocation) {
+    fun translate(displacement : MovecraftLocation, world: World) {
+        this.world = world
         lookoutPoint = lookoutPoint.add(movecraftLocationToVector(displacement))
         signLoc = signLoc.add(movecraftLocationToVector(displacement))
         if (originalLocation == null)
@@ -117,13 +121,20 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
 
     @EventHandler(priority = EventPriority.HIGH)
     fun onPlayerInteract(event : PlayerInteractEvent) {
-        val cb = event.clickedBlock
+
         if (event.action == Action.RIGHT_CLICK_BLOCK) {
-            if (cb!!.state !is Sign) {
+            val cb = event.clickedBlock
+            if (!cb!!.location.equals(signLoc)) {
+                return
+            }
+            if (cb.state !is Sign) {
                 return
             }
             val sign = cb.state as Sign
-            if (sign.getLine(0).equals(Settings.periscopeSignText)) {
+            if (!sign.world.equals(world)) {
+                return
+            }
+            if (!sign.getLine(0).equals(Settings.periscopeSignText)) {
                 return
             }
             val main = Periscopes.instance
