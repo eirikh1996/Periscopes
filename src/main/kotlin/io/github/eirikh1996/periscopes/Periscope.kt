@@ -11,6 +11,7 @@ import org.bukkit.util.Vector
 import java.util.*
 
 import kotlinx.coroutines.*
+import net.countercraft.movecraft.utils.BitmapHitBox
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.World
@@ -67,7 +68,7 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
     }
 
     fun asHitBox() : HitBox {
-        val hitBox = HashHitBox()
+        val hitBox = BitmapHitBox()
         val minY = signLoc.blockY;
         val maxY = lookoutPoint.blockY;
         for (y in minY..maxY-1) {
