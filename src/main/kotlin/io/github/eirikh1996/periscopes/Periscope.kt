@@ -32,7 +32,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
     val id = UUID.randomUUID()
     var player : Player? = null
     var originalLocation : Location? = null
-    var originalWalkSpeed : Float = 0f
     var world : World
 
     init {
@@ -86,7 +85,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
         this.originalLocation = player.location
         lookoutPoint.yaw = player.location.yaw
         lookoutPoint.pitch = player.location.pitch
-        originalWalkSpeed = player.walkSpeed
         player.walkSpeed = 0F
         player.teleport(lookoutPoint)
         for (op in Bukkit.getOnlinePlayers()) {
@@ -96,9 +94,7 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
 
     @EventHandler(priority = EventPriority.MONITOR)
     fun onSneak(event : PlayerToggleSneakEvent) {
-        if (!event.isSneaking)
-            return
-        if (!event.player.equals(player))
+        if (!event.isSneaking || !event.player.equals(player))
             return
         demountPlayer()
     }
@@ -108,7 +104,7 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
         if (!event.player.equals(player))
             return
         val to = event.to!!
-        if (to.x != lookoutPoint.x || to.y != lookoutPoint.y || to.z != lookoutPoint.z) {
+        if (to.x != lookoutPoint.x || to.y > lookoutPoint.y || to.z != lookoutPoint.z) {
             event.isCancelled = true
         }
     }
@@ -155,6 +151,19 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
 
     }
 
+    @EventHandler
+    fun onCommandProcess(event : PlayerCommandPreprocessEvent) {
+        if (!event.player.equals(player)) {
+            return
+        }
+        val cmd = event.message.substring(1)
+        if (Settings.allowedCommandsOnPeriscopes.contains(cmd)) {
+            return;
+        }
+        event.isCancelled = true
+        event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + " You cannot use this command while on  a periscope!")
+    }
+
 
     @EventHandler
     fun onBowShoot(event : EntityShootBowEvent) {
@@ -187,7 +196,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
     fun onQuit(event : PlayerQuitEvent) {
         if (!event.player.equals(player))
             return
-        event.player.walkSpeed = originalWalkSpeed
         demountPlayer()
     }
 
@@ -197,7 +205,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
             if (!contains(block.location)) {
                 continue
             }
-            demountPlayer()
             remove()
         }
     }
@@ -208,7 +215,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
             if (!contains(block.location)) {
                 continue
             }
-            demountPlayer()
             remove()
         }
     }
@@ -217,7 +223,6 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
     fun onBlockBreak(event : BlockBreakEvent) {
         if (!contains(event.block.location))
             return
-        demountPlayer()
         remove()
 
     }
@@ -233,7 +238,7 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
         val sign = signLoc.block.state as Sign
         sign.setLine(2, "")
         sign.update()
-        player!!.walkSpeed = originalWalkSpeed
+        player!!.walkSpeed = 0.2F
         player = null
     }
 
@@ -245,13 +250,14 @@ class Periscope constructor(var lookoutPoint : Location, var signLoc : Location)
         return id.hashCode()
     }
 
-    private fun remove() {
+    internal fun remove() {
+        demountPlayer()
         HandlerList.unregisterAll(this)
         Periscopes.instance.periscopes.remove(this)
     }
 
     override fun equals(other: Any?): Boolean {
-        if (!(other is Periscope)) {
+        if (other !is Periscope) {
             return false
         }
         return other.id.equals(id)

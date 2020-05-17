@@ -3,7 +3,6 @@ package io.github.eirikh1996.periscopes.listener
 import io.github.eirikh1996.periscopes.Periscope
 import io.github.eirikh1996.periscopes.Periscopes
 import io.github.eirikh1996.periscopes.Settings
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -18,7 +17,6 @@ import org.bukkit.event.block.BlockExplodeEvent
 import org.bukkit.event.block.SignChangeEvent
 import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.potion.PotionEffectType
 import org.bukkit.util.Vector
 
 object MainListener : Listener {
@@ -57,8 +55,8 @@ object MainListener : Listener {
         val attachedBlock = event.block.getRelative(getAttachment(sign))
         val attachedLoc = attachedBlock.location
         val attached = attachedBlock.type
-        if (!Settings.allowedPeriscopeBlocks.contains(attached)) {
-            event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Invalid periscope block " + attached.name.toLowerCase() + ". Valid periscope blocks are " + Settings.allowedPeriscopeBlocks.toString())
+        if (!Settings.allowedPeriscopeBlocks.contains(attached) && !Settings.periscopePassthroughBlocks.containsKey(attached)) {
+            event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Invalid periscope block " + attached.name.toLowerCase() + ". Valid periscope blocks are " + Settings.allowedPeriscopeBlocks.toString() + Settings.periscopePassthroughBlocks.toString())
             event.isCancelled = true
             return
         }
@@ -71,12 +69,35 @@ object MainListener : Listener {
             return
         }
         var topLoc = attachedLoc
+        val countedPassthroughBlocks = HashMap<Material, Int>()
         do {
+            val type = topLoc.block.type
+
             topLoc = topLoc.add(Vector(0, 1, 0))
-        } while (Settings.allowedPeriscopeBlocks.contains(topLoc.block.type))
-        val below = topLoc.block.getRelative(BlockFace.DOWN).type
+            if (Settings.periscopePassthroughBlocks.containsKey(type)) {
+                var count = countedPassthroughBlocks.getOrDefault(type, 0)
+                count++
+                countedPassthroughBlocks.put(type, count);
+            }
+        } while (Settings.allowedPeriscopeBlocks.contains(type) || Settings.periscopePassthroughBlocks.containsKey(type))
+
+        var below = topLoc.block.getRelative(BlockFace.DOWN).type
+        while (below.name.endsWith("AIR")) {
+            topLoc = topLoc.subtract(0.0, 1.0, 0.0)
+            below = topLoc.block.getRelative(BlockFace.DOWN).type
+        }
         topLoc.add(0.5, if (FENCES.contains(below)) 0.5 else 0.0, 0.5)
         val periscope = Periscope(topLoc, event.block.location)
+        for (type in countedPassthroughBlocks.keys) {
+            val maxPercentage = Settings.periscopePassthroughBlocks.get(type)!!
+            val percentage = (countedPassthroughBlocks.get(type)!! / periscope.getHeight()) * 100.0
+            if (percentage > maxPercentage) {
+                event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Too many passthrough blocks: " + type.name.toLowerCase() + " " + percentage + " > " + maxPercentage)
+                event.isCancelled = true
+                periscope.remove()
+                return
+            }
+        }
         if (Settings.maxPeriscopeHeight > -1 && periscope.getHeight() > Settings.maxPeriscopeHeight) {
             event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Periscope is too tall. Max height is " + Settings.maxPeriscopeHeight)
             event.isCancelled = true
@@ -136,18 +157,49 @@ object MainListener : Listener {
             val attachedBlock = event.clickedBlock!!.getRelative(getAttachment(sign))
             val attachedLoc = attachedBlock.location
             val attached = attachedBlock.type
-            if (!Settings.allowedPeriscopeBlocks.contains(attached)) {
-                event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Invalid periscope block " + attached.name.toLowerCase() + ". Valid periscope blocks are " + Settings.allowedPeriscopeBlocks.toString())
+            if (!Settings.allowedPeriscopeBlocks.contains(attached) && !Settings.periscopePassthroughBlocks.containsKey(attached)) {
+                event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Invalid periscope block " + attached.name.toLowerCase() + ". Valid periscope blocks are " + Settings.allowedPeriscopeBlocks.toString() + Settings.periscopePassthroughBlocks.toString())
+                event.isCancelled = true
+                return
+            }
+            for (test in periscopes) {
+                if (!test.contains(attachedLoc)) {
+                    continue
+                }
+                event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Block is already part of a periscope")
                 event.isCancelled = true
                 return
             }
             var topLoc = attachedLoc
+            val countedPassthroughBlocks = HashMap<Material, Int>()
             do {
+                val type = topLoc.block.type
+
                 topLoc = topLoc.add(Vector(0, 1, 0))
-            } while (Settings.allowedPeriscopeBlocks.contains(topLoc.block.type))
-            val below = topLoc.block.getRelative(BlockFace.DOWN).type
+                if (Settings.periscopePassthroughBlocks.containsKey(type)) {
+                    var count = countedPassthroughBlocks.getOrDefault(type, 0);
+                    count++
+                    countedPassthroughBlocks.put(type, count);
+                }
+            } while (Settings.allowedPeriscopeBlocks.contains(type) || Settings.periscopePassthroughBlocks.containsKey(type))
+
+            var below = topLoc.block.getRelative(BlockFace.DOWN).type
+            while (below.name.endsWith("AIR")) {
+                topLoc = topLoc.subtract(0.0, 1.0, 0.0)
+                below = topLoc.block.getRelative(BlockFace.DOWN).type
+            }
             topLoc.add(0.5, if (FENCES.contains(below)) 0.5 else 0.0, 0.5)
             periscope = Periscope(topLoc, event.clickedBlock!!.location)
+            for (type in countedPassthroughBlocks.keys) {
+                val maxPercentage = Settings.periscopePassthroughBlocks.get(type)!!
+                val percentage = (countedPassthroughBlocks.get(type)!! / periscope.getHeight().toDouble()) * 100.0
+                if (percentage > maxPercentage) {
+                    event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Too many passthrough blocks: " + type.name.toLowerCase() + " " + percentage + " > " + maxPercentage)
+                    periscope.remove()
+                    event.isCancelled = true
+                    return
+                }
+            }
             if (Settings.maxPeriscopeHeight > -1 && periscope.getHeight() > Settings.maxPeriscopeHeight) {
                 event.player.sendMessage(Periscopes.instance.PERISCOPES_PREFIX + Periscopes.instance.ERROR + "Periscope is too tall. Max height is " + Settings.maxPeriscopeHeight)
                 event.isCancelled = true
@@ -166,6 +218,7 @@ object MainListener : Listener {
 
 
     }
+
 
 
     @EventHandler

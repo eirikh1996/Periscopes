@@ -128,6 +128,16 @@ class Periscopes : JavaPlugin(), Listener {
             }
             Settings.allowedPeriscopeBlocks.add(type)
         }
+        val periscopePassthroughBlocks = config.getConfigurationSection("Periscope passthrough blocks")
+        if (periscopePassthroughBlocks != null) {
+            for (entry in periscopePassthroughBlocks.getValues(true).entries) {
+                Settings.periscopePassthroughBlocks.put(Material.getMaterial(entry.key.toUpperCase())!!, entry.value as Double)
+            }
+        }
+        val allowedCmds = config.getStringList("Allowed commands on periscopes")
+        for (allowedCmd in allowedCmds) {
+            Settings.allowedCommandsOnPeriscopes.add(allowedCmd)
+        }
         Settings.maxPeriscopeHeight = config.getInt("Max periscope height", -1)
         Settings.minPeriscopeHeight = config.getInt("Min periscope height", -1)
         Settings.periscopeSignText = config.getString("Periscope sign text", "§3Periscope")!!

@@ -48,6 +48,7 @@ object MovecraftHook : Listener {
     fun onCraftSink(event: CraftSinkEvent) {
         for (periscope in getPeriscopesInHitbox(event.craft.hitBox, event.craft.w)) {
             periscope.demountPlayer()
+            periscope.remove()
         }
     }
 

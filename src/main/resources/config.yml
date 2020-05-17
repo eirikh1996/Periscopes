@@ -2,7 +2,11 @@ Allowed periscope materials:
   - nether_brick_fence
   - iron_bars
   - cobblestone_wall
-
+Periscope passthrough blocks: #Blocks that periscopes can "pass through", but cannot make up a significant percentage of a periscope
+  nether_bricks: 20.0
+Allowed commands on periscopes:
+  - cruise
+  - contacts
 Min periscope height: -1
 Max periscope height: -1
 Periscope sign text: '§3Periscope'
